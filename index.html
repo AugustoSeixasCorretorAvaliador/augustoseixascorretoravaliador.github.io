@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HERO.IA — IA Assistiva do Corretor (Rascunho + Copiloto/Follow-up)</title>
+  <meta name="description" content="HERO.IA é uma IA assistiva (copiloto) no WhatsApp Web: gera rascunhos estratégicos e follow-ups com 1 clique. Controle humano obrigatório: nada é enviado sem revisão." />
+  <meta name="theme-color" content="#0E2A47" />
+
+  <style>
+    :root{
+      --bg0:#F8FAFC;
+      --bg1:#F8FAFC;
+      --card:#FFFFFF;
+      --card2:#FFFFFF;
+      --border: rgba(15, 23, 42, .10);
+      --text:#334155;
+      --muted:#64748B;
+      --muted2: rgba(100,116,139,.72);
+      --hero:#2563EB;
+      --hero2:#1F4ED8;
+      --ok:#16A34A;
+      --warn:#F59E0B;
+      --danger:#EF4444;
+      --shadow: 0 12px 30px rgba(2,6,23,.12);
+      --r: 18px;
+      --r2: 24px;
+      --max: 1120px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(800px 300px at 20% 10%, rgba(37,99,235,.08), transparent 60%),
+        radial-gradient(700px 280px at 85% 20%, rgba(31,78,216,.06), transparent 55%),
+        linear-gradient(#F8FAFC, #F8FAFC);
+      overflow-x:hidden;
+    }
+    a{color:inherit}
+    .wrap{max-width:var(--max); margin:0 auto; padding: 28px 18px 80px;}
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px; padding: 10px 0 18px;
+    }
+    .brand{padding:4px 0;}
+    .brand{
+      display:flex; align-items:center; gap:10px; text-decoration:none;
+      margin-left:25px;
+    }
+    .logo{
+      width:300px;
+      height:auto;
+      display:flex;
+      align-items:center;
+    }
+    .logo img{
+      width:100%;
+      height:auto;
+      object-fit:contain;
+      display:block;
+      border:none;
+      box-shadow:none;
+      background: transparent;
+    }
+    .brand strong{letter-spacing:.3px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background:#fff;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing:.1px;
+      box-shadow: 0 10px 22px rgba(2,6,23,.12);
+      white-space: nowrap;
+    }
+    .pill.primary{
+      background: linear-gradient(135deg, rgba(37,99,235,.16), rgba(37,99,235,.12));
+      color:#0E2A47;
+      border-color: rgba(37,99,235,.35);
+      box-shadow: 0 12px 24px rgba(37,99,235,.16);
+    }
+    .pill.blue{
+      background: linear-gradient(135deg, #1A7AF7, #0D5BD8);
+      color: #F9FBFF;
+      border-color: rgba(13,91,216,.32);
+      box-shadow: 0 14px 26px rgba(13,91,216,.28);
+    }
+    .pill.purple{
+      background: linear-gradient(135deg, #9D3BFF, #6F1FD1);
+      color: #FDF7FF;
+      border-color: rgba(111,31,209,.32);
+      box-shadow: 0 14px 26px rgba(111,31,209,.26);
+    }
+    .nav .right{display:flex; flex-direction:column; align-items:flex-end; gap:8px;}
+    .nav-links{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      letter-spacing:.2px;
+      box-shadow: var(--shadow);
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.20);}
+    .btn.primary{
+      border-color: rgba(37,99,235,.35);
+      background: linear-gradient(135deg, rgba(37,99,235,.16), rgba(37,99,235,.12));
+      color:#0E2A47;
+    }
+    .btn.ok{
+      border-color: rgba(22,163,74,.28);
+      background: linear-gradient(135deg, rgba(22,163,74,.14), rgba(37,99,235,.08));
+      color:#0E2A47;
+    }
+    .btn.small{padding:9px 12px; border-radius: 11px; font-weight:600; font-size: 13px; box-shadow:none}
+    .hero{
+      display:grid; gap:18px;
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      margin-top: 8px;
+    }
+    @media (max-width: 920px){ .hero{grid-template-columns: 1fr; } }
+
+    /* Responsivo topo/nav */
+    @media (max-width: 780px){
+      .wrap{padding: 20px 14px 70px;}
+      .nav{flex-direction: column; align-items: flex-start; gap: 10px; padding: 6px 0 14px;}
+      .brand{margin: 0;}
+      .logo{width: 220px;}
+      .nav .right{align-items: flex-start; width: 100%; gap: 6px;}
+      .nav-links{width: 100%; justify-content: flex-start; gap: 8px;}
+      .pill{font-size: 13px; padding: 8px 11px; box-shadow: 0 8px 18px rgba(2,6,23,.10);}
+      .btn.small{padding: 8px 11px;}
+    }
+    @media (max-width: 560px){
+      .nav{align-items:center; text-align:center;}
+      .brand{margin: 0 auto;}
+      .nav .right{align-items: center; width: 100%;}
+      .nav-links{justify-content: center;}
+    }
+    @media (max-width: 640px){
+      .pill{white-space: normal; text-align: center;}
+    }
+    .panel{
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(700px 320px at 20% 10%, rgba(37,99,235,.14), transparent 60%),
+        radial-gradient(700px 320px at 85% 15%, rgba(31,78,216,.10), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+      filter: blur(0px);
+    }
+    .panel > *{position:relative}
+    .hero-left{padding: 26px 24px 22px; text-align: center;}
+    .kicker{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;
+      margin-bottom: 12px;
+    }
+    h1{
+      margin: 10px 0 8px;
+      font-size: 44px;
+      line-height: 1.05;
+      letter-spacing: -0.8px;
+    }
+    @media (max-width: 480px){ h1{font-size: 36px;} }
+    .sub{
+      margin: 0 auto 16px;
+      color: var(--muted);
+      font-size: 16.5px;
+      line-height: 1.45;
+      max-width: 80ch;
+      text-align: center;
+    }
+    .sub strong{color: var(--text)}
+    .callouts{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin: 16px 0 0;
+    }
+    @media (max-width: 560px){ .callouts{grid-template-columns:1fr;} }
+    .callout{
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(37,99,235,.06);
+      padding: 14px 14px 12px;
+      box-shadow: 0 12px 28px rgba(2,6,23,.12);
+      color: #0E2A47;
+    }
+    .callout.blue{
+      background: linear-gradient(135deg, #1A7AF7, #0D5BD8);
+      border-color: rgba(13,91,216,.32);
+      color: #F9FBFF;
+      box-shadow: 0 16px 30px rgba(13,91,216,.30);
+    }
+    .callout.purple{
+      background: linear-gradient(135deg, #9D3BFF, #6F1FD1);
+      border-color: rgba(111,31,209,.32);
+      color: #FDF7FF;
+      box-shadow: 0 16px 30px rgba(111,31,209,.28);
+    }
+    .callout.blue p, .callout.purple p{color: rgba(255,255,255,.9);}
+    .callout b{display:block; margin-bottom:6px}
+    .callout p{margin:0; color: var(--muted); font-size: 13.5px; line-height: 1.35}
+    .hero-right{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .shot{
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: #fff;
+      overflow:hidden;
+      flex: 1;
+      min-height: 280px;
+      display:grid;
+      place-items:center;
+    }
+    .shot img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+      filter: saturate(1.05) contrast(1.02);
+    }
+    .shot iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+    .hero-hero img{
+      object-fit: contain;
+      background: rgba(0,0,0,.18);
+    }
+    .hint{
+      color: #0E2A47;
+      font-size: 12.8px;
+      line-height: 1.35;
+      margin-top: 6px;
+    }
+
+    .section{margin-top: 18px;}
+    .section h2{
+      margin: 34px 0 12px;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 920px){ .grid3{grid-template-columns: 1fr;} }
+    .grid3.shots{grid-template-columns: 1fr;}
+    .card{
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      padding: 16px 16px 14px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.22);
+    }
+    .card h3{margin:0 0 8px; font-size: 16px;}
+    .card p{margin:0; color: var(--muted); font-size: 13.8px; line-height: 1.4;}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing:.2px;
+      color: rgba(234,241,255,.88);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, var(--hero), rgba(101,179,255,.15));
+      box-shadow: 0 0 0 4px rgba(101,179,255,.12);
+    }
+    .dot.purple{
+      background: radial-gradient(circle at 30% 30%, var(--hero2), rgba(183,124,255,.15));
+      box-shadow: 0 0 0 4px rgba(183,124,255,.12);
+    }
+    .dot.green{
+      background: radial-gradient(circle at 30% 30%, var(--ok), rgba(56,212,138,.15));
+      box-shadow: 0 0 0 4px rgba(56,212,138,.12);
+    }
+
+    .flow{
+      border-radius: var(--r2);
+      border: 1px solid rgba(13,91,216,.14);
+      background: linear-gradient(180deg, #F3F7FF, #EAF2FF);
+      padding: 18px;
+      box-shadow: 0 16px 36px rgba(13,91,216,.12);
+      position:relative;
+      overflow:hidden;
+    }
+    .flow::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(700px 320px at 10% 0%, rgba(26,122,247,.18), transparent 62%),
+        radial-gradient(700px 320px at 95% 15%, rgba(109,63,255,.12), transparent 62%),
+        radial-gradient(700px 320px at 70% 105%, rgba(13,91,216,.10), transparent 62%);
+      pointer-events:none;
+    }
+    .flow > *{position:relative}
+    .steps{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .step{
+      display:grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      align-items: start;
+      border: 1px solid rgba(13,91,216,.16);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #E8F2FF, #E3ECFF);
+      padding: 14px;
+      box-shadow: 0 12px 26px rgba(13,91,216,.10);
+    }
+    @media (max-width: 640px){ .step{grid-template-columns: 1fr;} }
+    .step .k{
+      font-family: var(--mono);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #F8FBFF;
+      background: linear-gradient(135deg, #0D5BD8, #0A3FA3);
+      border: 1px solid rgba(13,91,216,.32);
+      border-radius: 12px;
+      padding: 10px 12px;
+      width: fit-content;
+      box-shadow: 0 10px 22px rgba(13,91,216,.24);
+      text-transform: uppercase;
+      letter-spacing: .2px;
+    }
+    .step h4{margin: 0 0 4px; font-size: 15px; color:#0E2A47;}
+    .step p{margin:0; color: #334155; font-size: 13.6px; line-height:1.35}
+    .bullets{
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: #475569;
+      font-size: 13.6px;
+      line-height: 1.45;
+    }
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 900px){ .split{grid-template-columns:1fr;} }
+    .box{
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 16px;
+      box-shadow: 0 14px 30px rgba(13,91,216,.12);
+      color:#0E2A47;
+    }
+    .box.blue{
+      background: linear-gradient(135deg, #1A7AF7, #0D5BD8);
+      border-color: rgba(13,91,216,.32);
+      color:#F9FBFF;
+      box-shadow: 0 16px 32px rgba(13,91,216,.28);
+    }
+    .box.purple{
+      background: linear-gradient(135deg, #9D3BFF, #6F1FD1);
+      border-color: rgba(111,31,209,.32);
+      color:#FDF7FF;
+      box-shadow: 0 16px 32px rgba(111,31,209,.26);
+    }
+    .box h3{margin:0 0 10px; font-size: 16px;}
+    .box.blue h3, .box.purple h3{color:#FDFBFF;}
+    .box ul{margin:0; padding-left: 18px; color: var(--muted); line-height: 1.45;}
+    .box.blue ul, .box.purple ul{color: rgba(255,255,255,.9);}    
+    .badge{
+      display:block;
+      width:100%;
+      border-radius: 16px;
+      border: 1px solid rgba(13,91,216,.28);
+      background: linear-gradient(135deg, #0FA97D, #0D5BD8);
+      padding: 14px;
+      color: #F8FBFF;
+      margin-top: 14px;
+      font-weight: 800;
+      letter-spacing:.2px;
+      box-shadow: 0 16px 32px rgba(13,91,216,.24);
+    }
+    .badge small{display:block; font-weight:600; color: rgba(248,251,255,.85); letter-spacing:0; margin-top:2px}
+    .faq{
+      border-radius: var(--r2);
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      padding: 10px;
+      box-shadow: 0 10px 24px rgba(13,91,216,.12);
+    }
+    details{
+      border-radius: 16px;
+      border: 1px solid rgba(13,91,216,.18);
+      background: #F6F9FF;
+      padding: 14px 14px;
+      margin: 10px;
+    }
+    summary{
+      cursor:pointer;
+      font-weight: 800;
+      letter-spacing:.2px;
+      color: #0E2A47;
+    }
+    details p{margin:10px 0 0; color: #334155; line-height: 1.5; font-size: 14px;}
+    .footer{
+      margin-top: 34px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      color: #0E2A47;
+      font-size: 12.8px;
+      line-height: 1.45;
+      display:grid;
+      gap: 10px;
+    }
+    .footer .links{
+      display:flex; flex-wrap:wrap; gap:10px;
+    }
+    .footer a{
+      color: #0D3A8B;
+      text-decoration:none;
+      border: 1px solid rgba(13,91,216,.28);
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #FFFFFF;
+      box-shadow: 0 10px 22px rgba(13,91,216,.12);
+    }
+    .footer a:hover{background: rgba(13,91,216,.06)}
+    .cta{
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: var(--r2);
+      border: 1px solid rgba(101,179,255,.40);
+      background: linear-gradient(135deg, rgba(101,179,255,.18), rgba(183,124,255,.12));
+      box-shadow: var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+      color: #0E2A47;
+    }
+    .cta b{font-size: 16px; color:#0E2A47;}
+    .cta span{color: #0E2A47; font-size: 13.5px;}
+    .kbd{
+      font-family: var(--mono);
+      padding: 2px 7px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: rgba(234,241,255,.86);
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- TOP NAV -->
+    <div class="nav">
+      <a class="brand" href="#top" aria-label="HERO.IA">
+        <div class="logo" aria-hidden="true">
+          <img src="assets/img/herotop.jpg" alt="Logo HERO.IA" />
+        </div>
+      </a>
+
+      <div class="right">
+        <span class="pill primary">GPT/OpenAI • WhatsApp Web • Controle Humano</span>
+        <div class="nav-links">
+          <a class="btn small primary" href="#como-funciona">Como funciona</a>
+          <a class="btn small primary" href="#seguranca">Segurança</a>
+          <a class="btn small primary" href="#demo">Agendar demo</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div id="top" class="hero">
+      <div class="panel hero-left">
+        <div class="kicker">
+          <span class="pill blue">✅ IA gera rascunhos • Humano Revisa / Envia</span>
+          <span class="pill purple">⚡ 2 inteligências assistivas: Rascunho + FollowUP</span>
+        </div>
+
+        <h1>HERO.IA - Responda e faça follow-up no WhatsApp-WEB com 1 clique e sem perder o controle.</h1>
+
+        <p class="sub">
+          <strong>HERO.IA</strong> é um <strong>copiloto de atendimento</strong> no WhatsApp Web:
+          gera <strong>rascunhos estratégicos</strong> com dados reais (empreendimentos/serviços) e cria
+          <strong>follow-ups diários</strong> analisando o histórico da conversa, objeções e gargalos, gerando proposta de mensagem estrategica.
+          <br/><br/>
+          <strong>Importante:</strong> a HERO.IA <strong>não é chatbot automático</strong>.<br/>
+          <strong>Controle humano é obrigatório</strong>: nada é enviado sem sua revisão.
+        </p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; justify-content:center;">
+          <!-- Ajuste os links abaixo conforme sua realidade -->
+          <a class="btn primary" href="#video">Assista ao Vídeo</a>
+          <a class="btn ok" href="#instalacao">Instalar em 3 passos</a>
+          <a class="btn primary" href="#ecossistema">Ver ecossistema</a>
+        </div>
+
+        <div class="callouts">
+          <div class="callout blue">
+            <b>🟦 IA 1 — ✍️ Gerar Rascunho (Reativa)</b>
+            <p>Responde perguntas com rapidez, qualidade e consistência usando sua base real (JSON) + GPT.</p>
+          </div>
+          <div class="callout purple">
+            <b>🟪 IA 2 — 🧠 Copiloto/Follow-up (Proativa)</b>
+            <p>Analisa contexto e histórico, detecta objeções, sugere próxima ação e gera mensagem estratégica.</p>
+          </div>
+        </div>
+
+        <div class="badge" title="Nada é enviado automaticamente.">
+          🛡️ Supervisão humana: cada envio passa pela sua revisão final
+          <small>Rascunho → Revisão → Envio (por você)</small>
+        </div>
+      </div>
+
+      <div class="panel hero-right">
+        <div class="shot hero-hero" aria-label="Prévia do material do HERO.IA">
+          <!--
+            DICA:
+            1) Coloque um arquivo "hero.jpg" em assets/img/
+            2) Troque o src abaixo para sua imagem preferida.
+          -->
+          <img src="assets/img/hero.jpg" alt="HERO.IA — visão do ecossistema (substitua por sua imagem)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ECOSSISTEMA -->
+    <div id="ecossistema" class="section">
+      <h2>Ecossistema completo do HERO.IA</h2>
+
+      <div class="grid3 shots">
+        <div class="card">
+          <div class="tag"><span class="dot"></span> Interface do Corretor (Frontend)</div>
+          <h3 style="margin-top:8px;">Extensão Chrome + WhatsApp Web</h3>
+          <p>
+            Você instala a extensão no Google Chrome e ganha dois botões dentro do WhatsApp Web:<br/>
+            <strong>✍️ Gerar Rascunho</strong> e <strong>🧠 Copiloto/Follow-up</strong>.<br/>
+            A resposta sempre nasce como rascunho para você revisar.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="tag"><span class="dot purple"></span> Backend (HEROIA-FULL)</div>
+          <h3 style="margin-top:8px;">Orquestração + validação + auditoria</h3>
+          <p>
+            O backend recebe a solicitação, valida licença/chave, busca dados reais na base,
+            chama a IA (GPT/OpenAI) e devolve o texto pronto para o rascunho/popup.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="tag"><span class="dot green"></span> Base real (JSON) + Contexto</div>
+          <h3 style="margin-top:8px;">Empreendimentos • serviços • regras</h3>
+          <p>
+            A HERO.IA trabalha com uma base estruturada (JSON) e com o contexto da conversa
+            para manter respostas completas e consistentes — sem improviso.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMO FUNCIONA -->
+    <div id="como-funciona" class="section">
+      <h2>Como funciona na prática</h2>
+
+      <div class="flow">
+        <p style="margin:0;color:var(--muted);max-width:85ch;line-height:1.5;">
+          <strong>“HERO.IA - Menos tempo digitando, mais tempo fechando Negócios”</strong>.<br/>
+          <strong>Controle humano</strong> e <strong>governança</strong>.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="k">Entrada</div>
+            <div>
+              <h4>Cliente manda mensagem no WhatsApp</h4>
+              <p>Você recebe a pergunta normalmente no WhatsApp Web. Nada muda no seu fluxo.</p>
+              <ul class="bullets">
+                <li>Lead pergunta preço, tipologia, bairro, entrega, condições, etc.</li>
+                <li>Ou você quer reativar conversa com follow-up diário.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="k">Frontend</div>
+            <div>
+              <h4>Você clica no botão: <span class="pill blue">✍️ Gerar Rascunho</span> ou <span class="pill purple">🧠 Copiloto/Follow-up</span></h4>
+              <p>
+                A extensão envia a solicitação ao backend. O resultado volta como:
+                <strong>rascunho dentro do WhatsApp</strong> e/ou <strong>popup de análise</strong> (no Copiloto).
+              </p>
+              <ul class="bullets">
+                <li>Sem “auto-send”. Nunca envia sozinho.</li>
+                <li>Você pode editar antes de enviar.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="k">Backend + IA</div>
+            <div>
+              <h4>Backend valida, consulta base real e chama GPT/OpenAI</h4>
+              <p>
+                O backend aplica regras (licença, limites, auditoria), consulta a base (JSON) e compõe o prompt.
+                A IA devolve a melhor versão de texto — pronta para revisão.
+              </p>
+              <ul class="bullets">
+                <li>Rascunho: responde rápido e completo (IA reativa).</li>
+                <li>Copiloto: lê contexto, aponta objeções/gargalos e sugere próximo passo (IA proativa).</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="k">Controle humano</div>
+            <div>
+              <h4>Você revisa, ajusta e decide quando enviar</h4>
+              <p>
+                Esse é o pilar central do HERO.IA: <strong>o humano é o responsável final</strong>.
+                Você mantém o relacionamento, o tom e a estratégia.
+              </p>
+              <ul class="bullets">
+                <li>Reduz risco de mensagem inadequada.</li>
+                <li>Preserva o vínculo corretor–cliente.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DOIS MODOS -->
+    <div class="section">
+      <h2>Dois modos, uma interface (sem confusão)</h2>
+
+      <div class="split">
+        <div class="box blue">
+          <h3>🟦 IA 1 — ✍️ Gerar Rascunho (Reativa)</h3>
+          <ul>
+            <li>Análise da mensagem</li>
+            <li>Identificação de intenção</li>
+            <li>Busca na base real (JSON)</li>
+            <li>Geração de resposta humanizada</li>
+            <li>Entrega como rascunho para revisão</li>
+          </ul>
+          <div style="margin-top:10px; color:#FDFBFF; font-size:12.8px;">
+            Ideal para: <strong>responder rápido</strong> com qualidade e consistência.
+          </div>
+        </div>
+
+        <div class="box purple">
+          <h3>🟪 IA 2 — 🧠 Copiloto/Follow-up (Proativa)</h3>
+          <ul>
+            <li>Sugestão de follow-up </li>
+            <li>Leitura de contexto da conversa</li>
+            <li>Detecção de objeções e gargalos</li>
+            <li>Oportunidades e próxima ação</li>
+            <li>Popup de análise + mensagem pronta em rascunho</li>
+          </ul>
+          <div style="margin-top:10px; color:#FDFBFF; font-size:12.8px;">
+            Ideal para: <strong>reativar leads</strong> e conduzir a negociação.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEGURANÇA -->
+    <div id="seguranca" class="section">
+      <h2>Segurança e governança. </h2>
+
+      <div class="grid3 shots">
+        <div class="card">
+          <div class="tag"><span class="dot green"></span> Controle humano 100%</div>
+          <h3 style="margin-top:8px;">Nada é enviado automaticamente</h3>
+          <p>
+            O texto vai para rascunho e você revisa. Isso é “anti-risco” e é o que torna o HERO.IA diferenciado de tudo.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="tag"><span class="dot"></span> Validação / Licença</div>
+          <h3 style="margin-top:8px;">Uso controlado por chave</h3>
+          <p>Licenças e limites são validados pelo backend.</p>
+        </div>
+
+        <div class="card">
+          <div class="tag"><span class="dot purple"></span> Rastreabilidade</div>
+          <h3 style="margin-top:8px;">Auditoria e qualidade</h3>
+          <p>Logging e versionamento da base (JSON) garantem consistência.</p>
+        </div>
+      </div>
+
+      <div class="faq" style="margin-top:14px;">
+        <details open>
+          <summary>HERO.IA é um “bot” que responde sozinho?</summary>
+          <p>
+            Não. A HERO.IA é uma <strong>IA assistiva</strong>. Ela gera <strong>rascunho estratégico</strong> da sua resposta e recomendações, mas <strong>não envia</strong>.
+            O humano revisa, pode ajustar e decide quando enviar.
+          </p>
+        </details>
+        <details>
+          <summary>O que o Copiloto/FollowUp faz exatamente?</summary>
+          <p>
+            Ele lê o contexto da conversa, identifica sinais de objeção/atrito e sugere um follow-up
+            estratégico (com tom e próximo passo). Você recebe a análise em popup e a mensagem proposta pelo "copiloto" em rascunho.
+          </p>
+        </details>
+        <details>
+          <summary>Isso reduz o “toque humano” no atendimento?</summary>
+          <p>
+            Definitivamente NÃO!. O ganho do HERO.IA é tirar o trabalho repetitivo (digitação e estrutura),
+            para você investir energia onde o humano é insubstituível: negociação, empatia e fechamento.
+          </p>
+        </details>
+      </div>
+    </div>
+
+    <!-- INSTALAÇÃO -->
+    <div id="instalacao" class="section">
+      <h2>Instalação em 3 passos (facilidade de verdade)</h2>
+
+      <div class="flow">
+        <div class="steps">
+          <div class="step">
+            <div class="k">1) Chrome</div>
+            <div>
+              <h4>Instale a extensão HERO.IA no Google Chrome</h4>
+              <p>Depois de instalada, ela adiciona os botões dentro do WhatsApp Web.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="k">2) WhatsApp</div>
+            <div>
+              <h4>Abra o WhatsApp Web e selecione um cliente</h4>
+              <p>Você verá os botões <span class="pill blue">✍️ Gerar Rascunho</span> e <span class="pill purple">🧠 Copiloto/Follow-up</span>.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="k">3) Clique</div>
+            <div>
+              <p>Com 1 clique em ... <span class="pill blue">✍️ Gerar Rascunho</span> ou <span class="pill purple">🧠 Copiloto/Follow-up</span>.</p>
+              <p>🤖</p>
+              <p>O texto aparece pronto para revisão. Você ajusta (se quiser) e envia.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="cta" id="demo">
+          <div>
+            <b>Quer ver funcionando em 2 minutos?</b><br/>
+            <span>Agende uma demo rápida pelo WhatsApp e eu te mostro o ecossistema completo.</span>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <!-- Ajuste o link wa.me para o seu número -->
+            <a class="btn ok" href="https://wa.me/5521985653880?text=Quero%20uma%20demo%20do%20HERO.IA%20(gerar%20rascunho%20+%20copiloto%2Ffollow-up).">Agendar demo no WhatsApp</a>
+          </div>
+        </div>
+
+        <div class="cta">
+          <div>
+            <b>Preço: Pacote anual - PROMOCIONAL</b><br/>
+            <span>ATIVAÇÃO R$ 99,00 + 12x MENSALIDADES R$ 49,00 | Via plataforma Hotmart (cancele quando quiser).</span>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn primary" href="https://pay.hotmart.com/S103706651L?bid=1767787144926" target="_blank" rel="noreferrer">COMPRA NA HOTMART</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SCREENSHOTS / PROVAS -->
+    <div class="section">
+      <h2>Imagens e materiais (adicione as suas)</h2>
+
+      <div class="grid3 shots">
+        <div class="card">
+          <h3>Slide — Ecossistema completo</h3>
+          <div class="shot" style="min-height:220px; margin-top:10px;">
+            <img src="assets/img/screenshot1.jpg" alt="Slide ecossistema HERO.IA (substitua a imagem)" />
+          </div>
+        </div>
+        <div class="card">
+          <h3>Slide — Dois modos (IA1 + IA2)</h3>
+          <div class="shot" style="min-height:220px; margin-top:10px;">
+            <img src="assets/img/screenshot2.jpg" alt="Slide IA1 e IA2 (substitua a imagem)" />
+          </div>
+        </div>
+        <div class="card">
+          <h3>Print — WhatsApp Web com botões</h3>
+          <div class="shot" style="min-height:220px; margin-top:10px;">
+            <img src="assets/img/screenshot3.jpg" alt="WhatsApp Web com botões HERO.IA (substitua a imagem)" />
+          </div>
+        </div>
+        <div class="card">
+          <h3>Print — Dashboard/Relatórios</h3>
+          <div class="shot" style="min-height:220px; margin-top:10px;">
+            <img src="assets/img/screenshot4.jpg" alt="Dashboard HERO.IA (substitua a imagem)" />
+          </div>
+        </div>
+        <div class="card">
+          <h3>Print — Fluxo completo</h3>
+          <div class="shot" style="min-height:220px; margin-top:10px;">
+            <img src="assets/img/screenshot5.jpg" alt="Fluxo completo HERO.IA (substitua a imagem)" />
+          </div>
+        </div>
+        <div class="card" id="video">
+          <h3>Vídeo de demonstração</h3>
+          <p style="color:#0E2A47;">Assista em tela cheia: <a href="https://youtu.be/Dq7puC-hF2Q" target="_blank" rel="noreferrer" style="color:#0D3A8B; font-weight:700;">YouTube</a></p>
+          <div class="shot" style="min-height:320px; margin-top:10px;">
+            <iframe src="https://www.youtube-nocookie.com/embed/Dq7puC-hF2Q?rel=0&modestbranding=1" title="Demonstração HERO.IA" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <div class="hint" style="margin-top:8px; color:#0E2A47;">Se o player bloquear (Erro 153), assista direto no YouTube: <a href="https://youtu.be/Dq7puC-hF2Q" target="_blank" rel="noreferrer" style="color:#0D3A8B; font-weight:700;">youtube.com/watch?v=Dq7puC-hF2Q</a>.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER / FONTES -->
+    <div class="footer">
+      <div><strong>Fontes e referências úteis (oficiais)</strong></div>
+      <div class="links">
+        <a href="https://web.whatsapp.com/" target="_blank" rel="noreferrer">WhatsApp Web (oficial)</a>
+        <a href="https://developer.chrome.com/docs/extensions/" target="_blank" rel="noreferrer">Documentação Extensões Chrome</a>
+        <a href="https://openai.com/api/" target="_blank" rel="noreferrer">OpenAI API (visão geral)</a>
+        <a href="https://platform.openai.com/docs" target="_blank" rel="noreferrer">Docs OpenAI (plataforma)</a>
+      </div>
+
+      <div>
+        © <span id="y"></span> HERO.IA • IA assistiva para corretores. <br/>
+        <span style="color:#0E2A47;">
+          Controle humano obrigatório: mensagens nunca são enviadas sem revisão.   <br/> <br/>
+          O HERO.IA é um assistente de linguagem e rascunho de respostas voltado a corretores de imóveis.
+Ele apoia o atendimento ao cliente, otimizando a comunicação e reduzindo o tempo de digitação. <br/> <br/>
+
+O HERO.IA opera por meio de modelos de linguagem (OpenAI), formulando respostas humanizadas e contextualizadas para o mercado imobiliário, com base apenas em informações públicas amplamente divulgadas, tais como: <br/> <br/>
+   •   Nome do empreendimento <br/>
+   •   Endereço e bairro <br/>
+   •   Tipologia <br/>
+   •   Previsão de entrega <br/> <br/>
+
+O HERO.IA NÃO: <br/> <br/>
+   •   Exibe ou calcula preços <br/>
+   •   Informa disponibilidade de unidades <br/>
+   •   Acessa ou controla estoque <br/>
+   •   Aplica ou sugere política comercial <br/>
+   •   Representa imobiliárias ou construtoras <br/>
+   •   Utiliza bases internas, privadas ou estratégicas de terceiros <br/> <br/>
+
+O HERO.IA atua exclusivamente como ferramenta de apoio ao corretor autônomo, sem substituir negociações, decisões comerciais ou relações institucionais. <br/> <br/>
+As informações utilizadas podem sofrer alterações conforme atualização das fontes públicas. <br/> <br/>
+
+          ⸻ <br/> <br/>
+
+HERO.IA <br/>
+💬 Menos tempo digitando <br/>
+✍️ Mais tempo fechando negócios <br/>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

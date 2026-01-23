@@ -1,0 +1,41 @@
+/* ======================================================
+   MEDIA STACK — imagens empilhadas (produto / arquitetura)
+   ====================================================== */
+
+.media-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  margin: 96px 0;
+}
+
+.media-stack img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.08),
+    0 30px 60px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.media-stack img:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.12),
+    0 40px 80px rgba(0, 0, 0, 0.18);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .media-stack {
+    gap: 40px;
+    margin: 72px 0;
+  }
+
+  .media-stack img {
+    border-radius: 12px;
+  }
+}
